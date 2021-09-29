@@ -1,18 +1,21 @@
 <template>
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    <h1>Hello World</h1>
+    <button @click="goToDaybook" class="btn btn-primary">Primary</button>
+    <button @click="goToDaybook" class="btn btn-secondary">Secondary</button>
+    <button @click="goToDaybook" class="btn btn-success">Success</button>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'Home',
-  components: {
-    HelloWorld,
-  },
-});
+  methods: {
+    goToDaybook() {
+      this.$router.push({ name: 'DaybookLayout'})
+    }
+  }
+})
 </script>
