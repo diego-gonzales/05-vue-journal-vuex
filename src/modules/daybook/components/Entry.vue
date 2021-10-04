@@ -1,21 +1,48 @@
 <template>
-    <div class="entry-container mb-3 pointer p-2" @click="$router.push({ name: 'Entry-Detail', params: { id: 10 } })">
+    <div class="entry-container mb-3 pointer p-2" @click="$router.push({ name: 'Entry-Detail', params: { id: entry.id } })">
         <div class="entry-title d-flex">
-            <span class="text-success fw-bold">15</span>
-            <span class="mx-1">July</span>
-            <span class="mx-2 fw-light">2021, thursday</span>
+            <span class="text-success fw-bold">{{ day }}</span>
+            <span class="mx-1">{{ month }}</span>
+            <span class="mx-2 fw-light">{{ yearAndDayOfTheWeek }}</span>
         </div>
         <div class="entry-description">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptates quod suscipit minima voluptatem magni, iste pariatur esse placeat corrupti. Est nobis omnis expedita praesentium officia enim blanditiis maxime consequuntur, earum pariatur, quos reprehenderit. Ad quasi corrupti commodi praesentium adipisci dolor?
+            {{ shortText }}
         </div>
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from 'vue'
 
+const months = ['January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December']
+const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+
 export default defineComponent({
-    
+    props: {
+        entry: {
+            type: Object,
+            required: true
+        }
+    },
+    computed: {
+        shortText() {
+            return (this.entry.text.length > 130)
+                ? this.entry.text.substring(0, 130) + '...'
+                : this.entry.text
+        },
+        day() {
+            const date = new Date(this.entry.date)
+            return date.getDate() // get the day (Not day of the week, the number)
+        },
+        month() {
+            const date = new Date(this.entry.date)
+            return months[date.getMonth()]
+        },
+        yearAndDayOfTheWeek() {
+            const date = new Date(this.entry.date)
+            return `${date.getFullYear()}, ${days[date.getDay()]}`
+        }
+    }
 })
 </script>
 

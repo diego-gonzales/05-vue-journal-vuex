@@ -1,27 +1,29 @@
 <template>
-  <div class="row m-2 justify-content-between">
-    <div class="col">
-      <span class="text-success fs-3 fw-bold">15</span>
-      <span class="mx-1 fs-3">July</span>
-      <span class="mx-2 fs-3 fw-light">2021, thursday</span>
+  <template v-if="entry">
+    <div class="row m-2 justify-content-between">
+      <div class="col">
+        <span class="text-success fs-3 fw-bold">{{ day }}</span>
+        <span class="mx-1 fs-3">{{ month }}</span>
+        <span class="mx-2 fs-3 fw-light">{{ yearAndDayOfTheWeek }}</span>
+      </div>
+      <div class="col d-flex justify-content-end">
+        <button class="btn btn-danger mx-2">
+          Delete
+          <i class="fa fa-trash-alt"></i>
+        </button>
+        <button class="btn btn-primary">
+          Upload Image
+          <i class="fa fa-upload"></i>
+        </button>
+      </div>
     </div>
-    <div class="col d-flex justify-content-end">
-      <button class="btn btn-danger mx-2">
-        Delete
-        <i class="fa fa-trash-alt"></i>
-      </button>
-      <button class="btn btn-primary">
-        Upload Image
-        <i class="fa fa-upload"></i>
-      </button>
+
+    <hr />
+
+    <div class="d-flex flex-column h-75 m-2">
+      <textarea placeholder="What happended today?" v-model="entry.text"></textarea>
     </div>
-  </div>
-
-  <hr />
-
-  <div class="d-flex flex-column h-75 m-2">
-    <textarea placeholder="What happended today?"></textarea>
-  </div>
+  </template>
 
   <FloatingActionButton iconName="fa-save"/>
 
@@ -32,17 +34,73 @@
   />
 </template>
 
-<script>
-import { defineAsyncComponent, defineComponent } from "@vue/runtime-core";
+
+<script lang="ts">
+import { defineAsyncComponent, defineComponent } from '@vue/runtime-core';
+import { mapGetters } from 'vuex';
+import getDayMonthYear from '../helpers/getDayMonthYear'
 
 export default defineComponent({
+  props: {
+    // this 'id' come from route params
+    id: {
+      type: String,
+      required: true
+    }
+  },
+
   components: {
     FloatingActionButton: defineAsyncComponent(() =>
       import("../components/FloatingActionButton.vue")
     ),
   },
+
+  data() {
+    return {
+      entry: {} as any
+    }
+  },
+
+  methods: {
+    loadEntry() {
+      const myEntry = this.getEntryById(this.id)
+      // console.log(myEntry)
+      if (!myEntry) return this.$router.push({ name: 'NoEntrySelected' })
+  
+      this.entry = myEntry
+    }
+  },
+
+  computed: {
+    ...mapGetters('journalStore', ['getEntryById']),
+    day() {
+      const { day } = getDayMonthYear(this.entry.date)
+      return day
+    },
+    month() {
+      const { month } = getDayMonthYear(this.entry.date)
+      return month
+    },
+    yearAndDayOfTheWeek() {
+      const { yearAndDayOfTheWeek } = getDayMonthYear(this.entry.date)
+      return yearAndDayOfTheWeek
+    }
+  },
+
+  created() {
+    // console.log(this.$route.params.id)
+    this.loadEntry()
+  },
+
+  watch: {
+    // This method must have the same name as the data property / id (actualValue, oldValue) {}
+    id() {
+      this.loadEntry()
+    }
+  }
 });
 </script>
+
 
 <style lang="scss" scoped>
 textarea {

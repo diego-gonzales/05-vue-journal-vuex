@@ -4,7 +4,7 @@
   </button>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({

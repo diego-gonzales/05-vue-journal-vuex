@@ -11,7 +11,12 @@ export default {
         {
             path: 'entry/:id',
             name: 'Entry-Detail',
-            component: () => import(/* webpackChunkName: "EntryDetailPage" */ '../views/EntryView.vue')
+            component: () => import(/* webpackChunkName: "EntryDetailPage" */ '../views/EntryView.vue'),
+            props: (route: any) => {
+                return {
+                    id: route.params.id
+                }
+            }
         },
         {
             path: '',
