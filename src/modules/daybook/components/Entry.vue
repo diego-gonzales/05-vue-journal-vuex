@@ -12,7 +12,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, PropType } from 'vue'
+import { Entry } from '../interfaces/entry.interface';
 
 const months = ['January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December']
 const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
@@ -20,7 +21,7 @@ const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Sat
 export default defineComponent({
     props: {
         entry: {
-            type: Object,
+            type: Object as PropType<Entry>,
             required: true
         }
     },

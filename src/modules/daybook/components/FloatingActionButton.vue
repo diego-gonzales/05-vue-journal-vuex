@@ -1,11 +1,13 @@
 <template>
-  <button class="btn btn-primary">
+  <button class="btn btn-primary"
+          @click="$emit('my-click')"
+  >
     <i class="fa fa-2x" :class="iconName"></i>
   </button>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "@vue/runtime-core";
+import { defineComponent } from '@vue/runtime-core';
 
 export default defineComponent({
   props: {

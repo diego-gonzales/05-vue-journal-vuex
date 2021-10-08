@@ -8,6 +8,16 @@
         v-model="searchTerm"
       />
     </div>
+
+    <div class="d-grid my-3">
+      <button class="btn btn-primary mx-3"
+              @click="$router.push({ name: 'Entry-Detail', params: { id: 'new-entry' }})"
+      >
+        <i class="fa fa-plus-circle"></i>
+        New Entry
+      </button>
+    </div>
+
     <div class="entry-scroll-area">
       <Entry v-for="entry in entriesBySearchTerm" :key="entry.id" :entry="entry" />
     </div>

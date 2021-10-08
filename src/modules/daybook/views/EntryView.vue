@@ -7,11 +7,19 @@
         <span class="mx-2 fs-3 fw-light">{{ yearAndDayOfTheWeek }}</span>
       </div>
       <div class="col d-flex justify-content-end">
-        <button class="btn btn-danger mx-2">
+        <input type="file"
+               v-show="false"
+               @change="onSelectedImage"
+               ref="myInputFile"
+               accept="image/png, image/jpeg">
+        <button v-if="entry.id"
+                @click="onDeleteEntry"
+                class="btn btn-danger mx-2">
           Delete
           <i class="fa fa-trash-alt"></i>
         </button>
-        <button class="btn btn-primary">
+        <button class="btn btn-primary"
+                @click="onUploadImage">
           Upload Image
           <i class="fa fa-upload"></i>
         </button>
@@ -23,22 +31,35 @@
     <div class="d-flex flex-column h-75 m-2">
       <textarea placeholder="What happended today?" v-model="entry.text"></textarea>
     </div>
+
+    <!-- Cloudinary Image -->
+    <img
+      v-if="entry.imageUrl && !localImage"
+      :src="entry.imageUrl"
+      class="img-thumbnail"
+    />
+
+    <!-- Local Image -->
+    <img
+      v-if="localImage"
+      :src="localImage"
+      alt="image"
+      class="img-thumbnail"
+    />
   </template>
 
-  <FloatingActionButton iconName="fa-save"/>
+  <FloatingActionButton iconName="fa-save" @my-click="onSaveEntry"/>
 
-  <img
-    src="https://images-na.ssl-images-amazon.com/images/G/01/US-hq/2018/img/PC_Hardware/XCM_1095776_Manual_750x375_1095776_us_pc_hardware_pcit_maincomputersstorefront_tablets_v3_cg_750x375_jpg_PCIT_PCIT_mainComputersStorefront_Additional_Stock_photos.jpg"
-    alt="image"
-    class="img-thumbnail"
-  />
 </template>
 
 
 <script lang="ts">
 import { defineAsyncComponent, defineComponent } from '@vue/runtime-core';
-import { mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import getDayMonthYear from '../helpers/getDayMonthYear'
+import uploadImage from '../helpers/uploadImage'
+import { Entry } from '../interfaces/entry.interface'
+import Swal from 'sweetalert2'
 
 export default defineComponent({
   props: {
@@ -57,17 +78,9 @@ export default defineComponent({
 
   data() {
     return {
-      entry: {} as any
-    }
-  },
-
-  methods: {
-    loadEntry() {
-      const myEntry = this.getEntryById(this.id)
-      // console.log(myEntry)
-      if (!myEntry) return this.$router.push({ name: 'NoEntrySelected' })
-  
-      this.entry = myEntry
+      entry: {} as Entry,
+      localImage: null as any,
+      imageToSave: null as any
     }
   },
 
@@ -84,6 +97,99 @@ export default defineComponent({
     yearAndDayOfTheWeek() {
       const { yearAndDayOfTheWeek } = getDayMonthYear(this.entry.date)
       return yearAndDayOfTheWeek
+    }
+  },
+
+  methods: {
+    ...mapActions('journalStore', ['putEntry', 'postEntry', 'deleteEntry']),
+
+    loadEntry() {
+      let myEntry;
+
+      if (this.id === 'new-entry') {
+        myEntry = {
+          text: '',
+          date: new Date().getTime()
+        }
+      } else {
+        myEntry = this.getEntryById(this.id)
+        if (!myEntry) return this.$router.push({ name: 'NoEntrySelected' })
+      }
+
+      this.entry = myEntry
+    },
+    async onSaveEntry() {
+      Swal.fire({
+        title: 'Saving entry...',
+        allowOutsideClick: false
+      })
+      Swal.showLoading()
+
+      const generatedImageUrl = await uploadImage(this.imageToSave)
+      if (generatedImageUrl) this.entry.imageUrl = generatedImageUrl
+
+      if (this.entry.id) {
+        // Update entry
+        await this.putEntry(this.entry)
+        Swal.close()
+      } else {
+        // Create entry
+        const idNewEntry = await this.postEntry(this.entry)
+        Swal.close()
+        // Redirect
+        this.$router.push({ name: 'Entry-Detail', params: { id: idNewEntry } })
+      }
+
+      this.imageToSave = null
+
+      Swal.fire({
+        title: 'Successfully saved',
+        icon: 'success'
+      })
+    },
+    async onDeleteEntry() {
+      const { isConfirmed } = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        showDenyButton: true,
+        confirmButtonText: 'Yes, delete it!'
+      })
+
+      if (isConfirmed) {
+        Swal.fire({
+          title: 'Removing entry...',
+          allowOutsideClick: false
+        })
+        Swal.showLoading()
+
+        await this.deleteEntry(this.entry.id)
+
+        Swal.close()
+
+        Swal.fire('Deleted!', 'Your entry has been deleted.', 'success')
+
+        this.$router.push({ name: 'NoEntrySelected' })
+      }
+    },
+    onSelectedImage(event: any) {
+      const image = event.target.files[0]
+
+      if (!image) {
+        this.localImage = null
+        this.imageToSave = null
+        return
+      }
+
+      this.imageToSave = image
+
+      const fr = new FileReader()
+      fr.readAsDataURL(image)
+      fr.onload = () => this.localImage = fr.result
+    },
+    onUploadImage() {
+      // document.querySelector('input')
+      const input = this.$refs.myInputFile as any
+      input.click()
     }
   },
 
